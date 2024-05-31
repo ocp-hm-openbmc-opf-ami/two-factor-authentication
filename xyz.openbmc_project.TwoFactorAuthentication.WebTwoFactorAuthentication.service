@@ -1,0 +1,17 @@
+[Unit]
+Description=Two Factor Authentication
+
+[Service]
+ExecStart=/usr/bin/env WebTwoFactorAuthentication
+SyslogIdentifier=WebTwoFactorAuthentication
+Restart=always
+StartLimitIntervalSec=0
+SuccessExitStatus=6
+StartLimitBurst=10
+RemainAfterExit=no
+RestartSec=5
+Type=dbus
+BusName=xyz.openbmc_project.TwoFactorAuthentication
+
+[Install]
+WantedBy=multi-user.target
