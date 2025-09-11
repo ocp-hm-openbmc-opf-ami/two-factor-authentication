@@ -358,6 +358,7 @@ return ret;
     // HOTP = 0; TOTP = 1
     int use_totp = 1, i = 0, retVal = 0;
     struct stat st;
+    int secret_fd = -1;
 
     memset((secret), 0, sizeof(secret));
     channel = "ch" + std::to_string(channel_num) + "/";
@@ -421,8 +422,9 @@ return ret;
       (*scratch_num)++;
     }
 
-    if (fd > 0) {
+    if (fd >= 0) {
       close(fd);
+      fd = -1;
     }
     if (stat(SECRET_PATH, &st) == -1) {
       if (mkdir(SECRET_PATH, 0777) == -1) {
@@ -451,21 +453,24 @@ return ret;
       goto errout;
     }
 
-    fd = open((const char *)secret_fn.c_str(),
-              O_WRONLY | O_EXCL | O_CREAT | O_NOFOLLOW | O_TRUNC, 0644);
-    if (fd < 0) {
-      goto errout;
+    secret_fd = open((const char *)secret_fn.c_str(),
+                     O_WRONLY | O_EXCL | O_CREAT | O_NOFOLLOW | O_TRUNC, 0644);
+    if (secret_fd < 0) {
+      return 1;
     }
-    retVal = write(fd, secret, strlen(secret));
+    retVal = write(secret_fd, secret, strlen(secret));
     if ((retVal < 0) || (retVal > (int)strlen(secret))) {
-      close(fd);
+      close(secret_fd);
+      secret_fd = -1;
+      return 1;
     }
-    close(fd);
+    close(secret_fd);
     return 0;
 
   errout:
     if (fd >= 0) {
       close(fd);
+      fd = -1;
     }
     return 1;
   }
@@ -550,24 +555,30 @@ return ret;
 };
 
 int main(int argc, char **argv) {
-  std::ofstream fpchassis;
-  fpchassis.open("/tmp/chassis.tmp", std::ios_base::app);
-  fpchassis << "Two Fctor Authentication" << std::endl;
-  fpchassis.close();
+  try {
 
-  if (0) {
-    argc = argc;
-    argv = argv;
+    if (0) {
+      argc = argc;
+      argv = argv;
+    }
+
+    auto bus = sdbusplus::bus::new_default();
+    sdbusplus::server::manager_t objManager(
+        bus, "xyz.openbmc_project.TwoFactorAuthentication");
+    bus.request_name("xyz.openbmc_project.TwoFactorAuthentication");
+    auto manager = std::make_unique<TwoFactorAuthImp>(bus, TwoFactorAuthRoot);
+
+    // Wait for client request
+    bus.process_loop();
+
+    return 0;
   }
 
-  auto bus = sdbusplus::bus::new_default();
-  sdbusplus::server::manager_t objManager(
-      bus, "xyz.openbmc_project.TwoFactorAuthentication");
-  bus.request_name("xyz.openbmc_project.TwoFactorAuthentication");
-  auto manager = std::make_unique<TwoFactorAuthImp>(bus, TwoFactorAuthRoot);
-
-  // Wait for client request
-  bus.process_loop();
-
-  return -1;
+  catch (const sdbusplus::exception::SdBusError &e) {
+    std::cerr << "DBus error: " << e.what() << std::endl;
+    return -1;
+  } catch (const std::exception &e) {
+    std::cerr << "Exception: " << e.what() << std::endl;
+    return -1;
+  }
 }
