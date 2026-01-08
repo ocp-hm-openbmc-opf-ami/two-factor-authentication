@@ -15,6 +15,10 @@
 #include <boost/process/io.hpp>
 
 // Error Logging
+#include <getopt.h>
+#include <security/pam_appl.h>
+#include <security/pam_modules.h>
+
 #include <phosphor-logging/elog-errors.hpp>
 #include <phosphor-logging/elog.hpp>
 #include <phosphor-logging/log.hpp>
@@ -23,10 +27,7 @@
 
 #include <filesystem>
 #include <fstream>
-#include <getopt.h>
 #include <iostream>
-#include <security/pam_appl.h>
-#include <security/pam_modules.h>
 #include <string>
 
 namespace Base = sdbusplus::xyz::openbmc_project;
@@ -50,5 +51,5 @@ using Interfaces = sdbusplus::server::object_t<UsersIface>;
 #define BYTES_PER_SCRATCHCODE 4 // 32bit of randomness is enough
 #define BITS_PER_BASE32_CHAR 5  // Base32 expands space by 8/5
 
-#define MAX_URL_LEN 1024 // Base32 expands space by 8/5
+#define MAX_URL_LEN 1024        // Base32 expands space by 8/5
 #endif
