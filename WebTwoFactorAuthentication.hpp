@@ -11,8 +11,8 @@
 #ifndef AMI_AUTH_TWO_FAC_HPP
 #define AMI_AUTH_TWO_FAC_HPP
 
-#include <boost/process/child.hpp>
-#include <boost/process/io.hpp>
+#include <boost/process/v1/child.hpp>
+#include <boost/process/v1/io.hpp>
 
 // Error Logging
 #include <getopt.h>
