@@ -1,0 +1,3 @@
+# meson_options.txt
+# Accept a 'tests' feature option from external scripts
+option('tests', type: 'feature', description: 'Build tests for two factor authentication')
