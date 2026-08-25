@@ -102,7 +102,6 @@ class TwoFactorAuthImp : IfcBase
             {
                 return URLVal;
             }
-            std::cout << URLVal << scratch_num << std::endl;
         }
         else
         {
@@ -116,7 +115,6 @@ class TwoFactorAuthImp : IfcBase
                 return URLVal;
             }
         }
-        std::cout << URLVal << scratch_num << std::endl;
 
         // update enable status
         variant = twoFacStatus;
@@ -146,7 +144,6 @@ class TwoFactorAuthImp : IfcBase
 
         static struct pam_conv localConversation = {verifycode_convfn, NULL};
 
-        std::cout << userName << otpString << std::endl;
         if (userName.empty())
         {
             return RetVal;
@@ -156,7 +153,6 @@ class TwoFactorAuthImp : IfcBase
         {
             return RetVal;
         }
-        std::cout << userName << otpString << std::endl;
 
         if (pam_start("TFA", userName.data(), &localConversation,
                       &localAuthHandle) != PAM_SUCCESS)
