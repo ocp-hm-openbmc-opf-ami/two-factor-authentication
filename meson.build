@@ -16,15 +16,17 @@ conf_data.set_quoted('BACKUP_BUSNAME', 'xyz.openbmc_project.TwoFactorAuthenticat
 
 conf_header = configure_file(output: 'config.h',configuration: conf_data)
 
-sdbusplus = dependency('sdbusplus')
 sdeventplus = dependency('sdeventplus')
 systemd = dependency('systemd')
 phosphor_logging_dep = dependency('phosphor-logging')
 tests_opt = get_option('tests')
 if tests_opt.enabled()
+    sdbusplus = subproject('sdbusplus').get_variable('sdbusplus_dep')
+    meson.override_dependency('sdbusplus',sdbusplus)
     phosphor_dbus_interfaces_proj = subproject('phosphor_dbus_interfaces', required: true)
     phosphor_dbus_interfaces_dep = phosphor_dbus_interfaces_proj.get_variable('phosphor_dbus_interfaces_dep')
 else
+    sdbusplus = dependency('sdbusplus')
     phosphor_dbus_interfaces_dep = dependency('phosphor-dbus-interfaces')
 endif
 cpp = meson.get_compiler('cpp')
