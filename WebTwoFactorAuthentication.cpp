@@ -384,10 +384,13 @@ class TwoFactorAuthImp : IfcBase
         uint8_t buf[SECRET_BITS / 8 + MAX_SCRATCHCODES * BYTES_PER_SCRATCHCODE];
         static const char totp[] = "\" TOTP_AUTH\n";
         static const char window[] =
-            "\" WINDOW_SIZE 3\n"; // default for HOTP is 17\n";
+            "\" WINDOW_SIZE 1\n"; // default for HOTP is 17\n";
+        // rejects reuse of an already-consumed code within its own valid step
+        static const char disallowReuse[] = "\" DISALLOW_REUSE\n";
         char secret[(SECRET_BITS + BITS_PER_BASE32_CHAR - 1) /
                         BITS_PER_BASE32_CHAR +
                     1 /* newline */ + sizeof(totp) + sizeof(window) +
+                    sizeof(disallowReuse) +
                     SCRATCHCODE_LENGTH * (MAX_SCRATCHCODES + 1 /* newline */) +
                     1 /* NUL termination character */];
         char hostname[128] = {0};
@@ -438,9 +441,17 @@ class TwoFactorAuthImp : IfcBase
         url.append(username);
         free((char*)s_url);
         free(encoderURL);
+        if (strlen(secret) + strlen("\n") + strlen(totp) + strlen(window) +
+                strlen(disallowReuse) >=
+            sizeof(secret))
+        {
+            close(fd);
+            return 1;
+        }
         strcat(secret, "\n");
         strcat(secret, totp);
         strcat(secret, window);
+        strcat(secret, disallowReuse);
         for (i = 0; i < emergency_codes; ++i)
         {
         new_scratch_code:;
